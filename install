@@ -1,0 +1,104 @@
+#!/bin/bash
+
+packages=(i3 compton python3 python3-pip feh git neofetch fonts-powerline ranger libxcb1-dev libxcb-keysyms1-dev libpango1.0-dev
+libxcb-util0-dev libxcb-icccm4-dev libyajl-dev
+libstartup-notification0-dev libxcb-randr0-dev
+libev-dev libxcb-cursor-dev libxcb-xinerama0-dev
+libxcb-xkb-dev libxkbcommon-dev libxkbcommon-x11-dev
+autoconf libxcb-xrm0 libxcb-xrm-dev automake libxcb-shape0-dev)
+
+pip_packages=(pywal colorthief)
+
+git_packages=(https://github.com/Airblader/i3)
+
+temp_folder="/tmp"
+
+arr2str () 
+{
+	arr=("$@")
+	for item in "${arr[@]}"
+	do
+		string+="$item "
+	done
+	
+	echo $string
+}
+
+check_pkg ()
+{
+	arr=("$@")
+	pkg_list=$(dpkg -l)
+	errors=0
+
+	printf "Report:\n-------\n"
+	for pkg in "${arr[@]}"
+	do
+		if echo "$pkg_list" | grep -q "$pkg"  
+		then
+			echo -e "[\033[0;36mI\033[0m] \033[0;36minstalled\033[0m: $pkg"	
+		else
+			echo -e "[\033[0;31mX\033[0m] \033[0;31mfailed\033[0m: $pkg"
+			errors=1
+		fi
+	done
+
+	if (($errors == 1)); then
+		echo -e "\nOne or more packages did not install. Try installing the package manually, then restart script.\n"
+		exit
+	fi
+}
+
+pkg_str=$(arr2str "${packages[@]}")
+
+echo -e "\nInstalling: $pkg_str\n"
+echo -e "This may take awhile...\n"
+
+apt-get install $pkg_str -y -q > /dev/null 2>&1
+check_pkg "${packages[@]}"
+
+#--------------------------------------------------
+
+git_clone ()
+{
+	arr=("$@")	
+
+	for git_repo in "${arr[@]}"
+	do 
+		git_folder=$(echo $git_repo | sed 's/https:\/\/github.com//g' | tr -d "/")
+		git clone $git_repo $1/$git_folder 
+	done
+}
+
+git_i3_gaps ()
+{
+	
+	arr=("$@")
+	git_folder=$(echo ${arr[1]} | sed 's/https:\/\/github.com//g' | tr -d "/")	
+	
+	i3_gaps_folder="$1/$git_folder"
+
+	echo $i3_gaps_folder
+
+	# compile & install
+	autoreconf $i3_gaps_folder --force --install
+	rm -rf $i3_gaps_folder/build/
+	mkdir -p $i3_gaps_folder/build 
+
+	# Disabling sanitizers is important for release versions!
+	# The prefix and sysconfdir are, obviously, dependent on the distribution.
+	$i3_gaps_folder/configure --prefix=/usr --sysconfdir=/etc --disable-sanitizers
+
+	mv *	
+
+	make -C $i3_gaps_folder/build
+	make install -C $i3_gaps_folder/build
+}
+
+
+git_clone $temp_folder "${git_packages[@]}"
+
+git_i3_gaps $temp_folder "${git_packages[@]}"
+
+echo "DONE"
+
+

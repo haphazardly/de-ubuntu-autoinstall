@@ -87,9 +87,9 @@ git_str=$(arr2str "${git_packages[@]}")
 echo -e "\nDownloading Git repositories: $git_str\n"
 echo -e "This may take awhile...\n"
 
-#git_clone $temp_folder "${git_packages[@]}"
+git_clone $temp_folder "${git_packages[@]}"
 
-#git_i3_gaps $temp_folder "${git_packages[@]}"
+git_i3_gaps $temp_folder "${git_packages[@]}"
 
 pip_str=$(arr2str "${pip_packages[@]}")
 

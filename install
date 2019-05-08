@@ -82,17 +82,21 @@ git_i3_gaps ()
 	make install -C $i3_gaps_folder/build
 }
 
-
-
 git_str=$(arr2str "${git_packages[@]}")
 
 echo -e "\nDownloading Git repositories: $git_str\n"
 echo -e "This may take awhile...\n"
 
-git_clone $temp_folder "${git_packages[@]}"
+#git_clone $temp_folder "${git_packages[@]}"
 
-git_i3_gaps $temp_folder "${git_packages[@]}"
+#git_i3_gaps $temp_folder "${git_packages[@]}"
 
-echo "DONE"
+pip_str=$(arr2str "${pip_packages[@]}")
+
+echo -e "\nInstalling pip applications: $pip_str\n"
+
+pip3 install $pip_str
+
+echo -e "Done!"
 
 

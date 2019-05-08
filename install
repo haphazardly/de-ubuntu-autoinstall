@@ -1,5 +1,4 @@
 #!/bin/bash
-
 packages=(i3 compton python3 python3-pip feh git neofetch fonts-powerline ranger libxcb1-dev libxcb-keysyms1-dev libpango1.0-dev
 libxcb-util0-dev libxcb-icccm4-dev libyajl-dev
 libstartup-notification0-dev libxcb-randr0-dev
@@ -63,37 +62,37 @@ git_clone ()
 	arr=("$@")	
 
 	for git_repo in "${arr[@]}"
-	do 
-		git_folder=$(echo $git_repo | sed 's/https:\/\/github.com//g' | tr -d "/")
-		git clone $git_repo $1/$git_folder 
+	do
+		git_folder=$(echo $git_repo | sed 's/https:\/\/github.com//g' | tr -d "/" 2>&1)	
+		echo -e "Downloading: $git_repo" 
+		git clone $git_repo $1/$git_folder
 	done
 }
 
 git_i3_gaps ()
 {
-	
 	arr=("$@")
 	git_folder=$(echo ${arr[1]} | sed 's/https:\/\/github.com//g' | tr -d "/")	
-	
 	i3_gaps_folder="$1/$git_folder"
-
-	echo $i3_gaps_folder
-
-	# compile & install
+	
 	autoreconf $i3_gaps_folder --force --install
 	rm -rf $i3_gaps_folder/build/
 	mkdir -p $i3_gaps_folder/build 
 
-	# Disabling sanitizers is important for release versions!
-	# The prefix and sysconfdir are, obviously, dependent on the distribution.
-	$i3_gaps_folder/configure --prefix=/usr --sysconfdir=/etc --disable-sanitizers
+	echo $i3_gaps_folder
 
-	mv *	
+	(cd $i3_gaps_folder/build/ && ../configure --prefix=/usr --sysconfdir=/etc --disable-sanitizers)
 
 	make -C $i3_gaps_folder/build
 	make install -C $i3_gaps_folder/build
 }
 
+
+
+git_str=$(arr2str "${git_packages[@]}")
+
+echo -e "\nDownloading Git repositories: $git_str\n"
+echo -e "This may take awhile...\n"
 
 git_clone $temp_folder "${git_packages[@]}"
 
